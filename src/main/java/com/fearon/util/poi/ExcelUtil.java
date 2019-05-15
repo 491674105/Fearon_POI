@@ -9,6 +9,7 @@ import com.fearon.util.string.StringUtil;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import javax.servlet.http.HttpServletResponse;
@@ -32,13 +33,18 @@ public class ExcelUtil {
         CellStyle style = null;
         Font font = null;
         StringBuilder realFileName = new StringBuilder(entity.getFileName());
-        switch (ExcelType.getType(entity.getExcelType().getType())) {
+        Integer excelType = (tableRowData.size() < 100000) ? entity.getExcelType().getType() : ExcelType.SXSSF.getType();
+        switch (ExcelType.getType(excelType)) {
             case HSSF:
                 workbook = new HSSFWorkbook();
                 realFileName.append(".xls");
                 break;
             case XSSF:
                 workbook = new XSSFWorkbook();
+                realFileName.append(".xlsx");
+                break;
+            case SXSSF:
+                workbook = new SXSSFWorkbook();
                 realFileName.append(".xlsx");
                 break;
             default:
@@ -284,14 +290,27 @@ public class ExcelUtil {
         Cell cell = null;
         BasePOIEntity entity = null;
         Map<String, Object> tableDivision = null;
+        boolean flag = false;
         int rowCount = 0, columnCount = 0;
         for (; ; ) {
+//            System.out.println("columnCount ---> " + columnCount);
             if (columnCount == 0) {
+//                System.out.println("rowIndex ---> " + rowIndex);
                 row = sheet.createRow(++rowIndex);
-                tableDivision = tableRowData.get(rowCount++);
+                cellIndex = 0;
+//                System.out.println("rowCount ---> " + rowCount);
+                if (++rowCount <= divisionSize) {
+                    tableDivision = tableRowData.get(rowCount - 1);
+                    flag = false;
+                } else {
+                    flag = true;
+                }
             }
-            if (null == tableDivision)
-                throw new NullPointerException("[table_division] no valid data was obtains!");
+            if (null == tableDivision || flag) {
+                /*System.out.println("flag ---> " + flag);
+                System.out.println("rowCount ---> " + --rowCount);*/
+                break;
+            }
 
             if (associateHeaderDivision.containsKey(cellIndex)) {
                 cellIndexCache = cellIndex;
@@ -299,7 +318,9 @@ public class ExcelUtil {
                 Object dataSource = tableDivision.get(entity.getKey().toString());
                 String formatter = null;
                 StringBuilder data = new StringBuilder();
-                if (StringUtil.isNotEmpty(formatter = entity.getNumberFormatter()) && dataSource instanceof Number) {
+                if (null == dataSource) { // 允许单元格写入空数据
+                    data.append("");
+                } else if (StringUtil.isNotEmpty(formatter = entity.getNumberFormatter()) && dataSource instanceof Number) {
                     data.append(new DecimalFormat(formatter).format(dataSource));
                 } else if (StringUtil.isNotEmpty(formatter = entity.getDateFormatter())) {
                     data.append(DateTimeUtil.formatDate(dataSource, formatter));
@@ -311,17 +332,19 @@ public class ExcelUtil {
                     data.append(suffix);
                 }
 
-                cell = row.createCell(cellIndex++);
+                cell = row.createCell(cellIndex);
                 cell.setCellValue(data.toString());
                 cell.setCellStyle(style);
                 if (cellIndex > 2 && !associateHeaderDivision.containsKey(cellIndex - 2)) {
                     CellRangeAddress cellAddresses = new CellRangeAddress(rowIndex - 1, rowIndex - 1, cellIndexCache, cellIndex - 1);
                     sheet.addMergedRegion(cellAddresses);
                 }
+                cellIndex++;
 
                 columnCount++;
                 if (columnCount == tableDivision.size()) {
                     if (rowCount == divisionSize) {
+//                        System.out.println("rowCount ---> " + --rowCount);
                         break;
                     }
                     columnCount = 0;
@@ -357,5 +380,65 @@ public class ExcelUtil {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public static void main(String[] args) throws IOException {
+        List<BasePOIEntity> tableHeader = new ArrayList<>();
+        /*BasePOIEntity entity = new BasePOIEntity("年月", "punchDate");
+        tableHeader.add(entity);
+        entity = new BasePOIEntity("姓名", "name");
+        tableHeader.add(entity);
+
+        entity = new BasePOIEntity("日期", "punchDay");
+        BasePOIEntity child1 = new BasePOIEntity("上午", "morning");
+        child1.setChildren(Arrays.asList(
+                new BasePOIEntity("状态", "morningStatus"),
+                new BasePOIEntity("时间", "morningTime"),
+                new BasePOIEntity("地点", "morningLocation")
+                )
+        );
+        BasePOIEntity child2 = new BasePOIEntity("下午", "afternoon");
+        child2.setChildren(Arrays.asList(
+                new BasePOIEntity("状态", "afternoonStatus"),
+                new BasePOIEntity("时间", "afternoonTime"),
+                new BasePOIEntity("地点", "afternoonLocation")
+                )
+        );
+        entity.setChildren(Arrays.asList(child1, child2));
+        tableHeader.add(entity);*/
+
+        /*List<Map<String, Object>> row = new ArrayList<>();
+        Map<String, Object> division = new HashMap<>();
+        division.put("punchDate", "2019-01");
+        division.put("name", "fearon");
+        division.put("morningStatus", "正常");
+        division.put("morningTime", "2019-4-11 8:20:25");
+        division.put("morningLocation", "人民广场");
+        division.put("afternoonStatus", "正常");
+        division.put("afternoonTime", "2019-4-11 18:20:25");
+        division.put("afternoonLocation", "人民广场");
+        row.add(division);*/
+
+
+        BasePOIEntity entity = new BasePOIEntity("UUID", "uuids");
+        tableHeader.add(entity);
+
+        List<Map<String, Object>> rowData = new ArrayList<>();
+        Map<String, Object> division = null;
+        int i = 0;
+        for (; i < 447; i++) {
+            division = new HashMap<>();
+            division.put("uuids", StringUtil.getUUID32(null, null));
+            rowData.add(division);
+        }
+//        System.out.println("rowCount ---> " + i);
+
+        ExcelFormatEntity entity1 = new ExcelFormatEntity("D:\\");
+        entity1.setExcelType(ExcelType.XSSF);
+        entity1.setFileName("test");
+        entity1.setSheetName("数据");
+//        entity1.setTitle("测试表");
+
+        createExcel(entity1, tableHeader, rowData);
     }
 }

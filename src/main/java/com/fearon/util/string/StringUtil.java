@@ -1,5 +1,7 @@
 package com.fearon.util.string;
 
+import java.util.UUID;
+
 /**
  * @description: 字符串处理工具
  * @author: Fearon
@@ -12,12 +14,12 @@ public class StringUtil {
      * @param source
      * @return
      */
-    public static boolean isEmpty(String source) {
-        return null == source || source.trim().length() <= 0;
-    }
-
     public static boolean isNotEmpty(String source) {
         return !isEmpty(source);
+    }
+
+    public static boolean isEmpty(String source) {
+        return null == source || source.trim().length() <= 0;
     }
 
     /**
@@ -26,12 +28,12 @@ public class StringUtil {
      * @param source
      * @return
      */
-    public static boolean isBlank(String source) {
-        return null == source;
-    }
-
     public static boolean isNotBlank(String source) {
         return !isBlank(source);
+    }
+
+    public static boolean isBlank(String source) {
+        return null == source;
     }
 
     /**
@@ -52,5 +54,22 @@ public class StringUtil {
         }
 
         return result.length() > 0 ? result.toString() : null;
+    }
+
+    /**
+     * 生成32位UUID
+     * @return
+     */
+    public static String getUUID32(String prefix, String suffix) {
+        StringBuilder uuid = new StringBuilder();
+        if(isNotEmpty(prefix))
+            uuid.append(prefix);
+
+        uuid.append(UUID.randomUUID().toString().replace("-", ""));
+
+        if(isNotEmpty(suffix))
+            uuid.append(suffix);
+
+        return uuid.toString().toLowerCase();
     }
 }

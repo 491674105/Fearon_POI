@@ -8,7 +8,8 @@ package com.fearon.util.poi.contact;
 public enum ExcelType {
     DEFAULT(-1, "no value can match this..."),
     HSSF(0, "HSSF"),
-    XSSF(1, "XSSF");
+    XSSF(1, "XSSF"),
+    SXSSF(2, "SXSSF");
 
     Integer type;
     String description;
