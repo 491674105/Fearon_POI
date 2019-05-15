@@ -9,7 +9,8 @@
 
     测试代码：
     
-    public static void test(String[] args) throws IOException {
+    本地导出方式：
+    public static void localTest() throws IOException {
         List<BasePOIEntity> tableHeader = new ArrayList<>();
 
         /*BasePOIEntity entity = new BasePOIEntity("年月", "punchDate");
@@ -47,7 +48,6 @@
         division.put("afternoonLocation", "人民广场");
         row.add(division);*/
 
-
         BasePOIEntity entity = new BasePOIEntity("UUID", "uuids");
         tableHeader.add(entity);
 
@@ -67,4 +67,23 @@
         entity1.setTitle("测试表");
 
         ExcelUtil.createExcel(entity1, tableHeader, rowData);
+    }
+    
+    服务端导出方式：
+    public void serverTest(HttpServletResponse response) throws IOException {
+        List<BasePOIEntity> tableHeader = new ArrayList<>();
+        
+        BasePOIEntity entity = new BasePOIEntity("UUID", "uuids");
+        tableHeader.add(entity);
+
+        List<Map<String, Object>> rowData = new ArrayList<>();
+        Map<String, Object> division = null;
+        int i = 0;
+        for (; i < 447; i++) {
+            division = new HashMap<>();
+            division.put("uuids", StringUtil.getUUID32(null, null));
+            rowData.add(division);
+        }
+
+        ExportUtil.exportExcelWithPOI(response, "test", "测试表", tableHeader, rowData);
     }

@@ -100,14 +100,17 @@ public class ExcelUtil {
         Row row = null;
         Cell cell = null;
         // 若存在标题，写入表格标题
-        boolean isNeedTitle = false;
         if (null != title && title.trim().length() > 0) {
             row = sheet.createRow(rowIndex);
             cell = row.createCell(cellIndex);
             cell.setCellValue(title);
             cell.setCellStyle(style);
-            isNeedTitle = true;
             rowIndex++;
+        }
+
+        boolean isNeedTitle = false;
+        if (headerSize >= 2) {
+            isNeedTitle = true;
         }
 
         List<BasePOIEntity> rowCells = new ArrayList<>();
