@@ -3,6 +3,7 @@ package com.fearon.util.poi;
 import com.fearon.util.poi.contact.ExcelType;
 import com.fearon.util.poi.entities.BasePOIEntity;
 import com.fearon.util.poi.entities.ExcelFormatEntity;
+import com.fearon.util.string.StringUtil;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -45,7 +46,7 @@ public class ExportUtil {
 
     public static void main(String[] args) throws IOException {
         List<BasePOIEntity> tableHeader = new ArrayList<>();
-        BasePOIEntity entity = new BasePOIEntity("年月", "punchDate");
+        /*BasePOIEntity entity = new BasePOIEntity("年月", "punchDate");
         tableHeader.add(entity);
         entity = new BasePOIEntity("姓名", "name");
         tableHeader.add(entity);
@@ -66,9 +67,9 @@ public class ExportUtil {
                 )
         );
         entity.setChildren(Arrays.asList(child1, child2));
-        tableHeader.add(entity);
+        tableHeader.add(entity);*/
 
-        List<Map<String, Object>> row = new ArrayList<>();
+        /*List<Map<String, Object>> row = new ArrayList<>();
         Map<String, Object> division = new HashMap<>();
         division.put("punchDate", "2019-01");
         division.put("name", "fearon");
@@ -78,14 +79,28 @@ public class ExportUtil {
         division.put("afternoonStatus", "正常");
         division.put("afternoonTime", "2019-4-11 18:20:25");
         division.put("afternoonLocation", "人民广场");
-        row.add(division);
+        row.add(division);*/
 
-        ExcelFormatEntity entity1 = new ExcelFormatEntity("D:\\first\\second\\");
-        entity1.setExcelType(ExcelType.HSSF);
+
+        BasePOIEntity entity = new BasePOIEntity("UUID", "uuids");
+        tableHeader.add(entity);
+
+        List<Map<String, Object>> rowData = new ArrayList<>();
+        Map<String, Object> division = null;
+        int i = 0;
+        for (; i < 447; i++) {
+            division = new HashMap<>();
+            division.put("uuids", StringUtil.getUUID32(null, null));
+            rowData.add(division);
+        }
+//        System.out.println("rowCount ---> " + i);
+
+        ExcelFormatEntity entity1 = new ExcelFormatEntity("D:\\");
+        entity1.setExcelType(ExcelType.XSSF);
         entity1.setFileName("test");
         entity1.setSheetName("数据");
-        entity1.setTitle("测试表");
+//        entity1.setTitle("测试表");
 
-        ExcelUtil.createExcel(entity1, tableHeader, row);
+        ExcelUtil.createExcel(entity1, tableHeader, rowData);
     }
 }
